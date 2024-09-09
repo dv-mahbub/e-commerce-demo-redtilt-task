@@ -1,3 +1,5 @@
+import 'package:e_commerce_demo_redtilt_task/components/global_functions/navigate.dart';
+import 'package:e_commerce_demo_redtilt_task/views/product_list_page.dart';
 import 'package:flutter/material.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -15,6 +17,11 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     Future.delayed(const Duration(seconds: 1), () {
       increaseSize();
+      Future.delayed(const Duration(seconds: 1), () {
+        if (mounted) {
+          navigate(context: context, child: const ProductListPage());
+        }
+      });
     });
     super.initState();
   }

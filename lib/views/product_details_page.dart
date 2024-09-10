@@ -1,62 +1,29 @@
-import 'dart:convert';
-import 'dart:developer';
-import 'package:e_commerce_demo_redtilt_task/components/constants/api_endpoints.dart';
 import 'package:e_commerce_demo_redtilt_task/components/constants/app_colors.dart';
-import 'package:e_commerce_demo_redtilt_task/components/controllers/api_controllers/api_response_data.dart';
-import 'package:e_commerce_demo_redtilt_task/components/controllers/api_controllers/get_api_controller.dart';
 import 'package:e_commerce_demo_redtilt_task/components/controllers/provider/cart_provider.dart';
 import 'package:e_commerce_demo_redtilt_task/components/global_functions/navigate.dart';
 import 'package:e_commerce_demo_redtilt_task/components/global_widget/custom_button.dart';
-import 'package:e_commerce_demo_redtilt_task/components/global_widget/show_message.dart';
 import 'package:e_commerce_demo_redtilt_task/models/product_list_model.dart';
 import 'package:e_commerce_demo_redtilt_task/views/checkout_page.dart';
-import 'package:e_commerce_demo_redtilt_task/views/product_details_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
-class ProductListPage extends StatefulWidget {
-  const ProductListPage({super.key});
+class ProductDetailsPage extends StatefulWidget {
+  final Product product;
+  const ProductDetailsPage({super.key, required this.product});
 
   @override
-  State<ProductListPage> createState() => _ProductListPageState();
+  State<ProductDetailsPage> createState() => _ProductDetailsPageState();
 }
 
-class _ProductListPageState extends State<ProductListPage> {
-  ProductListModel? productList;
-  @override
-  void initState() {
-    fetchData();
-    super.initState();
-  }
-
-  fetchData() async {
-    try {
-      ApiResponseData result =
-          await getApiController(ApiEndpoints.productList, false);
-      if (result.statusCode == 200) {
-        if (mounted) {
-          setState(() {
-            productList =
-                ProductListModel.fromJson(jsonDecode(result.responseBody));
-          });
-        }
-      } else {
-        log('Product List failed: ${result.statusCode} : ${result.responseBody}');
-        showError('Failed to get product list');
-      }
-    } catch (e) {
-      log('Fetch all products error: $e');
-      showError('Failed to connect server');
-    }
-  }
-
+class _ProductDetailsPageState extends State<ProductDetailsPage> {
   @override
   Widget build(BuildContext context) {
+    Product product = widget.product;
     return Scaffold(
       appBar: AppBar(
+        title: const Text('Product Details'),
         backgroundColor: AppColors.primary,
-        title: const Text('Product List'),
         foregroundColor: AppColors.whiteText,
         actions: [
           Consumer<CartProvider>(builder: (context, cart, child) {
@@ -99,99 +66,26 @@ class _ProductListPageState extends State<ProductListPage> {
           const SizedBox(width: 15),
         ],
       ),
-      floatingActionButton:
-          Consumer<CartProvider>(builder: (context, cart, child) {
-        return cart.cartItems.isEmpty
-            ? Container()
-            : InkWell(
-                onTap: () {
-                  if (mounted) {
-                    navigate(context: context, child: const CheckoutPage());
-                  }
-                },
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.amber.shade800,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    'Checkout >>',
-                    style: TextStyle(color: AppColors.whiteText),
-                  ),
-                ),
-              );
-      }),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Wrap(
-            crossAxisAlignment: WrapCrossAlignment.center,
-            runAlignment: WrapAlignment.center,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              ...List.generate(productList?.products?.length ?? 0,
-                  (index) => productContainer(productList!.products![index])),
               SizedBox(
-                height: 50,
                 width: 1.sw,
               ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  productContainer(Product product) {
-    return Padding(
-      padding: const EdgeInsets.all(6.0),
-      child: InkWell(
-        onTap: () {
-          if (mounted) {
-            navigate(
-                context: context, child: ProductDetailsPage(product: product));
-          }
-        },
-        child: Container(
-          width: .45.sw,
-          padding: const EdgeInsets.all(6),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(5),
-            boxShadow: [
-              BoxShadow(
-                spreadRadius: 2,
-                blurRadius: 3,
-                color: AppColors.shadowColor.withOpacity(.3),
-                offset: const Offset(2, 2),
+              ConstrainedBox(
+                constraints: BoxConstraints(maxHeight: .4.sh),
+                child: Image.network(
+                  product.image ?? '',
+                  width: .9.sw,
+                ),
               ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+              const SizedBox(height: 10),
               Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  Image.network(
-                    product.image ?? '',
-                    width: .40.sw,
-                    height: .5.sw,
-                  ),
-                ],
-              ),
-              Text(
-                product.title ?? 'No Title',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    '\$${product.price ?? '0'}',
-                    style: const TextStyle(fontWeight: FontWeight.w500),
-                  ),
                   Consumer<CartProvider>(builder: (context, cart, child) {
                     int index = -1;
                     for (int i = 0; i < cart.cartItems.length; i++) {
@@ -215,7 +109,28 @@ class _ProductListPageState extends State<ProductListPage> {
                           )
                         : quantityContainer(cart: cart, index: index);
                   }),
+                  SizedBox(
+                    width: .03.sw,
+                  ),
                 ],
+              ),
+              const SizedBox(height: 10),
+              Text(
+                product.title ?? 'No tilte',
+                textAlign: TextAlign.center,
+                style:
+                    const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                product.description ?? '',
+                textAlign: TextAlign.justify,
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Price: \$${product.price ?? 0}',
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -275,11 +190,5 @@ class _ProductListPageState extends State<ProductListPage> {
         ),
       ),
     );
-  }
-
-  showError(String message) {
-    if (mounted) {
-      showErrorMessage(context, message);
-    }
   }
 }

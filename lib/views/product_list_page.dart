@@ -4,11 +4,15 @@ import 'package:e_commerce_demo_redtilt_task/components/constants/api_endpoints.
 import 'package:e_commerce_demo_redtilt_task/components/constants/app_colors.dart';
 import 'package:e_commerce_demo_redtilt_task/components/controllers/api_controllers/api_response_data.dart';
 import 'package:e_commerce_demo_redtilt_task/components/controllers/api_controllers/get_api_controller.dart';
+import 'package:e_commerce_demo_redtilt_task/components/controllers/provider/cart_provider.dart';
+import 'package:e_commerce_demo_redtilt_task/components/global_functions/navigate.dart';
 import 'package:e_commerce_demo_redtilt_task/components/global_widget/custom_button.dart';
 import 'package:e_commerce_demo_redtilt_task/components/global_widget/show_message.dart';
 import 'package:e_commerce_demo_redtilt_task/models/product_list_model.dart';
+import 'package:e_commerce_demo_redtilt_task/views/checkout_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
 
 class ProductListPage extends StatefulWidget {
   const ProductListPage({super.key});
@@ -51,9 +55,73 @@ class _ProductListPageState extends State<ProductListPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppColors.primary,
-        title: Text('Product List'),
+        title: const Text('Product List'),
         foregroundColor: AppColors.whiteText,
+        actions: [
+          Consumer<CartProvider>(builder: (context, cart, child) {
+            return Visibility(
+              visible: cart.cartItems.isNotEmpty,
+              child: InkWell(
+                onTap: () {
+                  if (mounted) {
+                    navigate(context: context, child: const CheckoutPage());
+                  }
+                },
+                child: Stack(
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Icon(Icons.shopping_cart_outlined),
+                    ),
+                    Positioned(
+                      top: 0,
+                      right: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(3),
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.red,
+                        ),
+                        child: Text(
+                          '${cart.cartItems.length}',
+                          style: TextStyle(
+                            color: AppColors.whiteText,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }),
+          const SizedBox(width: 15),
+        ],
       ),
+      floatingActionButton:
+          Consumer<CartProvider>(builder: (context, cart, child) {
+        return cart.cartItems.isEmpty
+            ? Container()
+            : InkWell(
+                onTap: () {
+                  if (mounted) {
+                    navigate(context: context, child: const CheckoutPage());
+                  }
+                },
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.shade800,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    'Checkout >>',
+                    style: TextStyle(color: AppColors.whiteText),
+                  ),
+                ),
+              );
+      }),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Wrap(
@@ -62,6 +130,10 @@ class _ProductListPageState extends State<ProductListPage> {
             children: [
               ...List.generate(productList?.products?.length ?? 0,
                   (index) => productContainer(productList!.products![index])),
+              SizedBox(
+                height: 50,
+                width: 1.sw,
+              ),
             ],
           ),
         ),
@@ -112,13 +184,29 @@ class _ProductListPageState extends State<ProductListPage> {
                   '\$${product.price ?? '0'}',
                   style: const TextStyle(fontWeight: FontWeight.w500),
                 ),
-                // quantityContainer(),
-                CustomButton(
-                  text: 'Add',
-                  onTap: () {},
-                  width: 80,
-                  height: 40,
-                ),
+                Consumer<CartProvider>(builder: (context, cart, child) {
+                  int index = -1;
+                  for (int i = 0; i < cart.cartItems.length; i++) {
+                    if (cart.cartItems[i].id == product.id) {
+                      index = i;
+                    }
+                  }
+                  return index == -1
+                      ? CustomButton(
+                          text: 'Add',
+                          onTap: () {
+                            cart.addToCart(
+                              CartProductDetails(
+                                id: product.id,
+                                price: product.price,
+                              ),
+                            );
+                          },
+                          width: 80,
+                          height: 40,
+                        )
+                      : quantityContainer(cart: cart, index: index);
+                }),
               ],
             ),
           ],
@@ -127,7 +215,8 @@ class _ProductListPageState extends State<ProductListPage> {
     );
   }
 
-  Container quantityContainer() {
+  Container quantityContainer(
+      {required CartProvider cart, required int index}) {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.primary,
@@ -135,14 +224,23 @@ class _ProductListPageState extends State<ProductListPage> {
       ),
       child: Row(
         children: [
-          littleButton(text: '-', onTap: () {}),
+          littleButton(
+              text: '-',
+              onTap: () {
+                cart.removeFromCart(
+                    CartProductDetails(id: cart.cartItems[index].id));
+              }),
           Text(
-            '3',
+            '${cart.cartItems[index].quantity ?? 0}',
             style: TextStyle(
               color: AppColors.whiteText,
             ),
           ),
-          littleButton(text: '+', onTap: () {}),
+          littleButton(
+              text: '+',
+              onTap: () {
+                cart.addToCart(cart.cartItems[index]);
+              }),
         ],
       ),
     );

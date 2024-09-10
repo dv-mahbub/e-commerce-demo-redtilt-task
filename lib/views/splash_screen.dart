@@ -19,7 +19,7 @@ class _SplashScreenState extends State<SplashScreen> {
       increaseSize();
       Future.delayed(const Duration(seconds: 1), () {
         if (mounted) {
-          navigate(context: context, child: const ProductListPage());
+          replaceNavigate(context: context, child: const ProductListPage());
         }
       });
     });

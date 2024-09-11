@@ -1,10 +1,8 @@
 import 'package:e_commerce_demo_redtilt_task/components/constants/app_colors.dart';
 import 'package:e_commerce_demo_redtilt_task/components/controllers/provider/cart_provider.dart';
-import 'package:e_commerce_demo_redtilt_task/components/global_functions/navigate.dart';
 import 'package:e_commerce_demo_redtilt_task/components/global_widget/custom_app_bar.dart';
 import 'package:e_commerce_demo_redtilt_task/components/global_widget/custom_button.dart';
 import 'package:e_commerce_demo_redtilt_task/models/product_list_model.dart';
-import 'package:e_commerce_demo_redtilt_task/views/checkout_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
@@ -46,7 +44,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                   Consumer<CartProvider>(builder: (context, cart, child) {
                     int index = -1;
                     for (int i = 0; i < cart.cartItems.length; i++) {
-                      if (cart.cartItems[i].id == product.id) {
+                      if (cart.cartItems[i].product?.id == product.id) {
                         index = i;
                       }
                     }
@@ -55,10 +53,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                             text: 'Add',
                             onTap: () {
                               cart.addToCart(
-                                CartProductDetails(
-                                  id: product.id,
-                                  price: product.price,
-                                ),
+                                CartProductDetails(product: product),
                               );
                             },
                             width: 80,
@@ -109,8 +104,8 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
             littleButton(
                 text: '-',
                 onTap: () {
-                  cart.removeFromCart(
-                      CartProductDetails(id: cart.cartItems[index].id));
+                  cart.removeFromCart(CartProductDetails(
+                      product: cart.cartItems[index].product));
                 }),
             Text(
               '${cart.cartItems[index].quantity ?? 0}',

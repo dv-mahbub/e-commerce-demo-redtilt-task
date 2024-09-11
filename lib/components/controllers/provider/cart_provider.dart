@@ -1,3 +1,4 @@
+import 'package:e_commerce_demo_redtilt_task/models/product_list_model.dart';
 import 'package:flutter/material.dart';
 
 class CartProvider with ChangeNotifier {
@@ -7,7 +8,7 @@ class CartProvider with ChangeNotifier {
   num totalAmount() {
     num amount = 0;
     for (var item in _cartItems) {
-      num price = item.price ?? 0;
+      num price = item.product?.price ?? 0;
       amount = amount + price * item.quantity!;
     }
     return amount;
@@ -20,7 +21,7 @@ class CartProvider with ChangeNotifier {
     } else {
       bool found = false;
       for (var item in _cartItems) {
-        if (productDetails.id == item.id) {
+        if (productDetails.product?.id == item.product?.id) {
           item.quantity = item.quantity! + 1;
           found = true;
         }
@@ -36,7 +37,7 @@ class CartProvider with ChangeNotifier {
 
   void removeFromCart(CartProductDetails productDetails) {
     for (int i = 0; i < _cartItems.length; i++) {
-      if (_cartItems[i].id == productDetails.id) {
+      if (_cartItems[i].product?.id == productDetails.product?.id) {
         if (_cartItems[i].quantity == 1) {
           _cartItems.removeAt(i);
         } else {
@@ -54,23 +55,20 @@ class CartProvider with ChangeNotifier {
 }
 
 class CartProductDetails {
-  int? id;
   int? quantity;
-  double? price;
+  Product? product;
 
   // Constructor with mandatory and optional fields
   CartProductDetails({
-    this.id,
     this.quantity,
-    this.price,
+    this.product,
   });
 
   // Method to convert an instance to a Map
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
       'quantity': quantity,
-      'price': price,
+      'product': product,
     };
   }
 }

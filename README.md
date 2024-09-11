@@ -13,5 +13,5 @@ Additionally, a basic logo animation has been implemented on the Splash Screen f
 
 
 # Installation Guide
-Visit the link bellow, then download and istall the apk file.
+Visit the link below, then download and install the apk file.
 https://github.com/dv-mahbub/file/tree/main/redtilt_task/file

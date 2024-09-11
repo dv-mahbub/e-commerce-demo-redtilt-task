@@ -84,6 +84,7 @@ class _ProductListPageState extends State<ProductListPage> {
         child: SingleChildScrollView(
           child: Wrap(
             crossAxisAlignment: WrapCrossAlignment.center,
+            alignment: WrapAlignment.center,
             runAlignment: WrapAlignment.center,
             children: [
               ...List.generate(productList?.products?.length ?? 0,
@@ -110,7 +111,7 @@ class _ProductListPageState extends State<ProductListPage> {
           }
         },
         child: Container(
-          width: .45.sw,
+          width: (ScreenUtil().screenWidth < 600) ? .45.sw : .31.sw,
           padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(
             color: Colors.white,
@@ -132,7 +133,7 @@ class _ProductListPageState extends State<ProductListPage> {
                 children: [
                   Image.network(
                     product.image ?? '',
-                    width: .40.sw,
+                    width: (ScreenUtil().screenWidth < 600) ? .40.sw : .28.sw,
                     height: .5.sw,
                   ),
                 ],

@@ -7,7 +7,7 @@ import 'package:e_commerce_demo_redtilt_task/components/controllers/api_controll
 import 'package:e_commerce_demo_redtilt_task/components/controllers/provider/cart_provider.dart';
 import 'package:e_commerce_demo_redtilt_task/components/global_functions/navigate.dart';
 import 'package:e_commerce_demo_redtilt_task/components/global_widget/custom_app_bar.dart';
-import 'package:e_commerce_demo_redtilt_task/components/global_widget/custom_button.dart';
+import 'package:e_commerce_demo_redtilt_task/components/global_widget/quantity_container.dart';
 import 'package:e_commerce_demo_redtilt_task/components/global_widget/show_message.dart';
 import 'package:e_commerce_demo_redtilt_task/models/product_list_model.dart';
 import 'package:e_commerce_demo_redtilt_task/views/checkout_page.dart';
@@ -149,82 +149,10 @@ class _ProductListPageState extends State<ProductListPage> {
                     '\$${product.price ?? '0'}',
                     style: const TextStyle(fontWeight: FontWeight.w500),
                   ),
-                  Consumer<CartProvider>(builder: (context, cart, child) {
-                    int index = -1;
-                    for (int i = 0; i < cart.cartItems.length; i++) {
-                      if (cart.cartItems[i].product?.id == product.id) {
-                        index = i;
-                      }
-                    }
-                    return index == -1
-                        ? CustomButton(
-                            text: 'Add',
-                            onTap: () {
-                              cart.addToCart(
-                                CartProductDetails(product: product),
-                              );
-                            },
-                            width: 80,
-                            height: 40,
-                          )
-                        : quantityContainer(cart: cart, index: index);
-                  }),
+                  QuantityContainer(product: product),
                 ],
               ),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Container quantityContainer(
-      {required CartProvider cart, required int index}) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.primary,
-        borderRadius: BorderRadius.circular(5),
-      ),
-      child: IntrinsicWidth(
-        child: Row(
-          children: [
-            littleButton(
-                text: '-',
-                onTap: () {
-                  cart.removeFromCart(CartProductDetails(
-                      product: cart.cartItems[index].product));
-                }),
-            Text(
-              '${cart.cartItems[index].quantity ?? 0}',
-              style: TextStyle(
-                color: AppColors.whiteText,
-              ),
-            ),
-            littleButton(
-                text: '+',
-                onTap: () {
-                  cart.addToCart(cart.cartItems[index]);
-                }),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget littleButton(
-      {required String text,
-      required Function() onTap,
-      bool isBiggerFont = true}) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
-        child: Text(
-          text,
-          style: TextStyle(
-            color: AppColors.whiteText,
-            fontSize: isBiggerFont ? 18 : 14,
-            fontWeight: isBiggerFont ? FontWeight.bold : FontWeight.w500,
           ),
         ),
       ),

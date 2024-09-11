@@ -32,6 +32,12 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                 child: Image.network(
                   product.image ?? '',
                   width: .9.sw,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Image.asset(
+                      'assets/images/error_image.png',
+                      width: .9.sw,
+                    );
+                  },
                 ),
               ),
               const SizedBox(height: 10),

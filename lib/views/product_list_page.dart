@@ -1,10 +1,12 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:e_commerce_demo_redtilt_task/components/constants/api_endpoints.dart';
 import 'package:e_commerce_demo_redtilt_task/components/constants/app_colors.dart';
 import 'package:e_commerce_demo_redtilt_task/components/controllers/api_controllers/api_response_data.dart';
 import 'package:e_commerce_demo_redtilt_task/components/controllers/api_controllers/get_api_controller.dart';
 import 'package:e_commerce_demo_redtilt_task/components/controllers/provider/cart_provider.dart';
+import 'package:e_commerce_demo_redtilt_task/components/controllers/shared_preference/product_list_store.dart';
 import 'package:e_commerce_demo_redtilt_task/components/global_functions/navigate.dart';
 import 'package:e_commerce_demo_redtilt_task/components/global_widget/custom_app_bar.dart';
 import 'package:e_commerce_demo_redtilt_task/components/global_widget/quantity_container.dart';
@@ -25,10 +27,51 @@ class ProductListPage extends StatefulWidget {
 
 class _ProductListPageState extends State<ProductListPage> {
   ProductListModel? productList;
+  bool noData = false;
+
   @override
   void initState() {
-    fetchData();
+    checkConnection();
     super.initState();
+  }
+
+  void checkConnection() async {
+    var connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult.first == ConnectivityResult.mobile ||
+        connectivityResult.first == ConnectivityResult.wifi) {
+      // Connected to the internet
+      fetchData();
+    } else {
+      // Not connected to any network
+      showError('No internet connect');
+      loadDataFromLocalStorage();
+    }
+  }
+
+  loadDataFromLocalStorage() async {
+    String? json = await ProductListStore.getProductList();
+
+    if (json != null) {
+      try {
+        if (mounted) {
+          setState(() {
+            productList = ProductListModel.fromJson(jsonDecode(json));
+          });
+        }
+      } catch (e) {
+        if (mounted) {
+          setState(() {
+            noData = true;
+          });
+        }
+      }
+    } else {
+      if (mounted) {
+        setState(() {
+          noData = true;
+        });
+      }
+    }
   }
 
   fetchData() async {
@@ -42,12 +85,15 @@ class _ProductListPageState extends State<ProductListPage> {
                 ProductListModel.fromJson(jsonDecode(result.responseBody));
           });
         }
+        ProductListStore.storeProductList(result.responseBody);
       } else {
         log('Product List failed: ${result.statusCode} : ${result.responseBody}');
+        loadDataFromLocalStorage();
         showError('Failed to get product list');
       }
     } catch (e) {
       log('Fetch all products error: $e');
+      loadDataFromLocalStorage();
       showError('Failed to connect server');
     }
   }
@@ -80,23 +126,33 @@ class _ProductListPageState extends State<ProductListPage> {
                 ),
               );
       }),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Wrap(
-            crossAxisAlignment: WrapCrossAlignment.center,
-            alignment: WrapAlignment.center,
-            runAlignment: WrapAlignment.center,
-            children: [
-              ...List.generate(productList?.products?.length ?? 0,
-                  (index) => productContainer(productList!.products![index])),
-              SizedBox(
-                height: 50,
-                width: 1.sw,
+      body: productList == null
+          ? noData
+              ? const Center(
+                  child: Text('Error!'),
+                )
+              : const Center(
+                  child: CircularProgressIndicator(),
+                )
+          : SafeArea(
+              child: SingleChildScrollView(
+                child: Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  alignment: WrapAlignment.center,
+                  runAlignment: WrapAlignment.center,
+                  children: [
+                    ...List.generate(
+                        productList?.products?.length ?? 0,
+                        (index) =>
+                            productContainer(productList!.products![index])),
+                    SizedBox(
+                      height: 50,
+                      width: 1.sw,
+                    ),
+                  ],
+                ),
               ),
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
 
@@ -135,6 +191,14 @@ class _ProductListPageState extends State<ProductListPage> {
                     product.image ?? '',
                     width: (ScreenUtil().screenWidth < 600) ? .40.sw : .28.sw,
                     height: .5.sw,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Image.asset(
+                        'assets/images/error_image.png',
+                        width:
+                            (ScreenUtil().screenWidth < 600) ? .40.sw : .28.sw,
+                        height: .5.sw,
+                      );
+                    },
                   ),
                 ],
               ),

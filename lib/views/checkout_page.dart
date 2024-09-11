@@ -58,7 +58,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                   height: 55,
                                   width: 55,
                                   errorBuilder: (context, error, stackTrace) {
-                                    return const Text('No Image');
+                                    return Image.asset(
+                                      'assets/images/error_image.png',
+                                      width: 55,
+                                      height: 55,
+                                    );
                                   },
                                 ),
                               ),
